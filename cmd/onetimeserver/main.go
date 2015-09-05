@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/zendesk/onetimeserver"
+	"github.com/osheroff/onetimeserver"
 	"math/rand"
 	"os"
 	"runtime"
