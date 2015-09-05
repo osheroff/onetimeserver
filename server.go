@@ -2,7 +2,6 @@ package onetimeserver
 
 import (
 	"fmt"
-	"http"
 	"math/rand"
 	"net"
 )
