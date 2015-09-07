@@ -8,6 +8,7 @@ import (
 
 type Server interface {
 	Boot([]string)
+	Pid() int
 	Port() int
 	Kill()
 	String() string
@@ -26,8 +27,4 @@ func GetPort(suggestedPort int) int {
 		}
 	}
 	return 0
-}
-
-func GetBinary(program string, version string) {
-
 }

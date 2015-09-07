@@ -6,7 +6,6 @@ import (
 	"github.com/osheroff/onetimeserver"
 	"math/rand"
 	"os"
-	"runtime"
 	"time"
 )
 
@@ -42,7 +41,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s\n", runtime.GOOS)
 	s.Boot(config.extraArgs)
-	fmt.Printf("Yeah, I got a server!  It's all %s\n", s)
+	onetimeserver.WatchServer(config.ppid, s)
 }
