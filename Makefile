@@ -1,5 +1,8 @@
-all: wrapper
+all:  wrapper/onetimeserver onetimeserver-go
 
-wrapper: wrapper.c
-	gcc -g -o wrapper wrapper.c
+wrapper/onetimeserver: wrapper/wrapper.c
+	gcc -o wrapper/onetimeserver wrapper/wrapper.c
+
+onetimeserver-go:
+	go install github.com/osheroff/onetimeserver/...
 
