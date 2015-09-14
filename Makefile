@@ -1,14 +1,16 @@
-all:  wrapper/onetimeserver onetimeserver-go install-local
+all:  wrapper onetimeserver-go install-local
 
-wrapper/onetimeserver: wrapper/wrapper.c
+wrapper: wrapper/wrapper.c wrapper/wrapper
 	gcc -g -o wrapper/onetimeserver-wrapper wrapper/wrapper.c
 
 onetimeserver-go:
 	go install github.com/osheroff/onetimeserver/...
 
+DIR=${HOME}/.onetimeserver/$(shell uname -s)-$(shell uname -m)
+
 install-local:
-	mkdir -p bin
-	cp wrapper/onetimeserver-wrapper ./bin
-	cp ${GOPATH}/bin/onetimeserver-go ./bin
+	mkdir -p $(DIR)
+	cp wrapper/wrapper $(DIR)
+	cp ${GOPATH}/bin/onetimeserver-go $(DIR)
 
 
