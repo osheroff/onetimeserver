@@ -42,7 +42,8 @@ func main() {
 	}
 
 	s.Boot(config.extraArgs)
-	fmt.Printf("port: %d", s.Port())
+	fmt.Printf("port: %d\n", s.Port())
+	fmt.Printf("booted: true\n")
 
 	onetimeserver.WatchServer(config.ppid, s)
 }

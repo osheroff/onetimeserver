@@ -2,7 +2,6 @@ package onetimeserver
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,13 +12,9 @@ func pidExists(pid int) bool {
 	fmt.Printf("checking %d...\n", pid)
 	proc, err := os.FindProcess(pid)
 	if err != nil {
-		log.Printf("%s\n", err)
 		return false
 	}
 	err = proc.Signal(syscall.Signal(0))
-	if err != nil {
-		log.Printf("%s\n", err)
-	}
 	return err == nil
 }
 
