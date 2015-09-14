@@ -32,25 +32,17 @@ int tee_child(FILE *child_stdout) {
 void exec_child(int new_stdout, int argc, char **argv)
 {
 	int i, j;
-	char **new_argv, ppidbuf[8];
+	char **new_argv;
 
-	sprintf(ppidbuf, "%d", getppid());
-	new_argv = malloc(sizeof(char *) * (argc + 6));
+	new_argv = malloc(sizeof(char *) * (argc + 1));
 
 	new_argv[0] = malloc(strlen(dirname(argv[0])) + strlen(ONETIMESERVER_BINARY) + 1);
 	sprintf(new_argv[0], "%s/%s", dirname(argv[0]), ONETIMESERVER_BINARY);
 
-	new_argv[1] = "-type";
-	new_argv[2] = argv[1];
-	new_argv[3] = "-ppid";
-	new_argv[4] = ppidbuf;
-	new_argv[5] = "--";
+	for(i = 1; i < argc; i++)
+		new_argv[i] = argv[i];
 
-	/* skip argv[0] (wrapper), and argv[1] (onetimeserver type) */
-	for(i = 2, j = 6; i < argc ; i++, j++)
-		new_argv[j] = argv[i];
-
-	new_argv[j] = NULL;
+	new_argv[i] = NULL;
 
 	dup2(new_stdout, STDOUT_FILENO);
 	dup2(new_stdout, STDERR_FILENO);
@@ -58,21 +50,6 @@ void exec_child(int new_stdout, int argc, char **argv)
 	execv(new_argv[0], new_argv);
 
 	perror("Couldn't execute " ONETIMESERVER_BINARY);
-}
-
-void usage()
-{
-	fprintf(stderr, "Usage: onetimerserver mysql [mysql_args]...\n");
-	exit(1);
-}
-
-void validate_args(int argc, char **argv)
-{
-	if ( argc <  2 )
-		usage();
-
-	if ( strcasecmp(argv[1], "mysql") != 0 )
-		usage();
 }
 
 /* a teensy bit of C glue overcome go's reluctance to fork() */
@@ -83,8 +60,6 @@ int main(int argc, char **argv)
 	FILE *child_file = NULL;
 	char tmpbuf[sizeof(TMPFILE_TEMPLATE) + 1];
 
-	validate_args(argc, argv);
-
 	strcpy(tmpbuf, TMPFILE_TEMPLATE);
 	child_stdout_fd = mkstemp(tmpbuf);
 
@@ -94,7 +69,6 @@ int main(int argc, char **argv)
 	}
 
 	printf("output: %s\n", tmpbuf);
-
 
 	if ( (child = fork()) ) {
 		child_file = fdopen(child_stdout_fd, "r");
