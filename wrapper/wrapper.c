@@ -4,10 +4,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <libgen.h>
+#include <ctype.h>
 
 #define ONETIMESERVER_BINARY "onetimeserver-go"
 #define TMPFILE_TEMPLATE "/tmp/onetimeserver.XXXXXX"
-#define BOOTED_STRING "booted: true"
+#define JSON_PREFIX "_onetimeserver_json: "
 
 int tee_child(FILE *child_stdout) {
 	char *line = NULL;
@@ -17,10 +18,10 @@ int tee_child(FILE *child_stdout) {
 	/* clear EOF */
 	fseek(child_stdout, 0, SEEK_CUR);
 	while ((linelen = getline(&line, &linecap, child_stdout)) > 0) {
-		if ( strncmp(line, BOOTED_STRING, strlen(BOOTED_STRING)) == 0 )
+		if ( strncmp(line, JSON_PREFIX, strlen(JSON_PREFIX)) == 0 ) {
+			fwrite(line + strlen(JSON_PREFIX), linelen - strlen(JSON_PREFIX), 1, stdout);
 			exit(0);
-
-		fwrite(line, linelen, 1, stdout);
+		}
 	}
 
 	sleep(1);
@@ -29,20 +30,23 @@ int tee_child(FILE *child_stdout) {
 }
 
 
-void exec_child(int new_stdout, int argc, char **argv)
+void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 {
 	int i, j;
 	char **new_argv;
 
-	new_argv = malloc(sizeof(char *) * (argc + 1));
+	new_argv = malloc(sizeof(char *) * (argc + 3));
 
 	new_argv[0] = malloc(strlen(dirname(argv[0])) + strlen(ONETIMESERVER_BINARY) + 1);
 	sprintf(new_argv[0], "%s/%s", dirname(argv[0]), ONETIMESERVER_BINARY);
 
-	for(i = 1; i < argc; i++)
-		new_argv[i] = argv[i];
+	new_argv[1] = "-output";
+	new_argv[2] = tmpfile;
 
-	new_argv[i] = NULL;
+	for(i = 1; i < argc; i++)
+		new_argv[i + 2] = argv[i];
+
+	new_argv[i + 2] = NULL;
 
 	dup2(new_stdout, STDOUT_FILENO);
 	dup2(new_stdout, STDERR_FILENO);
@@ -68,8 +72,6 @@ int main(int argc, char **argv)
 		abort();
 	}
 
-	printf("output: %s\n", tmpbuf);
-
 	if ( (child = fork()) ) {
 		child_file = fdopen(child_stdout_fd, "r");
 		while ( 1 ) {
@@ -83,6 +85,6 @@ int main(int argc, char **argv)
 			}
 		}
 	} else {
-		exec_child(child_stdout_fd, argc, argv);
+		exec_child(child_stdout_fd, tmpbuf, argc, argv);
 	}
 }

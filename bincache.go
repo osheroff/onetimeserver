@@ -11,8 +11,8 @@ import (
 
 const baseURL = "https://raw.githubusercontent.com/osheroff/onetimeserver-binaries/master"
 
-func getBinaryCachePath(pkg string, program string, version string) string {
-	dir := fmt.Sprintf("%s/.onetimeserver/bin/%s/%s", os.Getenv("HOME"), pkg, version)
+func getBinaryCachePath(pkg string, subpath string, program string, version string) string {
+	dir := fmt.Sprintf("%s/.onetimeserver/bin/%s/%s%s", os.Getenv("HOME"), pkg, version, subpath)
 	err := os.MkdirAll(dir, 0755)
 
 	if err != nil {
@@ -22,8 +22,8 @@ func getBinaryCachePath(pkg string, program string, version string) string {
 	return fmt.Sprint(dir, "/", program)
 }
 
-func GetBinary(pkg string, program string, version string) string {
-	path := getBinaryCachePath(pkg, program, version)
+func GetBinary(pkg string, subpath string, program string, version string) string {
+	path := getBinaryCachePath(pkg, subpath, program, version)
 	_, err := os.Stat(path)
 	if err == nil {
 		return path

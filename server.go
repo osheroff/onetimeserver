@@ -7,7 +7,7 @@ import (
 )
 
 type Server interface {
-	Boot([]string)
+	Boot([]string) (map[string]interface{}, error)
 	Pid() int
 	Port() int
 	Kill()
