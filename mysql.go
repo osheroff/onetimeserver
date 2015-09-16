@@ -113,8 +113,12 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 }
 
 func (m *Mysql) Kill() {
-	if process, err := os.FindProcess(m.pid); err != nil {
+	process, err := os.FindProcess(m.pid)
+	if err == nil {
+		fmt.Printf("killing %d\n", m.pid)
 		process.Kill()
+	} else {
+		fmt.Printf("Couldn't find process %d -- %s\n", m.pid, err)
 	}
 
 	if m.path != "" {
