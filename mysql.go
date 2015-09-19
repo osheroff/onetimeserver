@@ -102,6 +102,7 @@ func (m *Mysql) mysqlInstallDB() {
 func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	var err error
 	infoMap := make(map[string]interface{})
+	log.Printf("booting mysql server (version %s)", m.version)
 
 	execPath := m.getMysqlBinary("/bin", "mysqld")
 
