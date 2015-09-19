@@ -23,7 +23,7 @@ do
       exit
       ;;
     --mysql-version=*)
-      MYSQL_VERSION="-mysql-version ${i#*=}"
+      MYSQL_VERSION="-mysql-version ${1#*=}"
       ;;
     -m)
       shift
@@ -61,4 +61,5 @@ then
   chmod +x $CACHE_DIR/onetimeserver-go
 fi
 
+echo $CACHE_DIR/wrapper $MYSQL_VERSION -ppid $PPID -type mysql -- $EXTRA_ARGS
 exec $CACHE_DIR/wrapper $MYSQL_VERSION -ppid $PPID -type mysql -- $EXTRA_ARGS
