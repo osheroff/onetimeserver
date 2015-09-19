@@ -136,7 +136,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	go m.cmd.Process.Wait()
 
 	for scanner.Scan() {
-		if matched, _ := regexp.Match(`^Version:\s+'[\d\.]+'.*`, scanner.Bytes()); matched {
+		if matched, _ := regexp.Match(`^Version:\s+'[\d\.]+.*`, scanner.Bytes()); matched {
 			break
 		}
 		fmt.Printf("[mysqld] %s\n", scanner.Text())
