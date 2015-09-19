@@ -11,11 +11,17 @@ CACHE_DIR=$HOME/.onetimeserver/$PLATFORM
 
 function usage() {
   echo "usage: onetimeserver [--mysql-version=VERSION|-m VERSION] [-v|--verbose] [mysql_args...]"
+  echo "       onetimeserver update"
 }
 
 while [[ $# > 0 ]]
 do
   case $1 in
+    update)
+      rm -Rf $CACHE_DIR/*
+      echo "cache cleared, next run will update"
+      exit
+      ;;
     --mysql-version=*)
       MYSQL_VERSION="-mysql-version ${i#*=}"
       ;;
@@ -40,11 +46,6 @@ done
 
 mkdir -p $CACHE_DIR
 
-
-if [ "$1" == "clear" ] ; then
-  rm -Rf $CACHE_DIR/*
-  exit 0
-fi
 
 cd $CACHE_DIR
 
