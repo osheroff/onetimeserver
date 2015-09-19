@@ -1,0 +1,3 @@
+[submodule "onetimeserver-binaries"]
+	path = onetimeserver-binaries
+	url = git@github.com:osheroff/onetimeserver-binaries
