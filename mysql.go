@@ -2,8 +2,10 @@ package onetimeserver
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,20 +13,46 @@ import (
 )
 
 type Mysql struct {
-	port int
-	path string
-	pid  int
-	cmd  *exec.Cmd
+	port    int
+	path    string
+	pid     int
+	version string
+	cmd     *exec.Cmd
 }
 
-func NewMysql() *Mysql {
-	return &Mysql{}
+func NewMysql(version string) *Mysql {
+	mappedVersion, err := mapVersion(version)
+	abortOnError(err)
+
+	return &Mysql{version: mappedVersion}
+}
+
+func mapVersion(version string) (string, error) {
+	availableVersions := map[string]string{
+		"5.6":    "5.6.26",
+		"5.6.26": "5.6.26",
+		"5.5":    "5.5.45",
+		"5.5.45": "5.5.45",
+	}
+
+	if version == "" {
+		return "5.6.26", nil
+	}
+
+	if availableVersions[version] == "" {
+		return "", errors.New(fmt.Sprintf("no such mysql version: %s", version))
+	}
+
+	return availableVersions[version], nil
+}
+
+func (m *Mysql) getMysqlBinary(path string, bin string) string {
+	return GetBinary("mysql", path, bin, m.version)
 }
 
 func abortOnError(e error) {
 	if e != nil {
-		fmt.Printf("error: %s\n", e)
-		os.Exit(1)
+		log.Fatal("_onetimeserver_json: { \"error\": \"%s\" }\n", e)
 	}
 }
 
@@ -42,16 +70,22 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 }
 
 func (m *Mysql) mysqlInstallDB() {
-	GetBinary("mysql", "/bin", "my_print_defaults", "5.6.26")
-	GetBinary("mysql", "/bin", "resolveip", "5.6.26")
-	GetBinary("mysql", "/support-files", "my-default.cnf", "5.6.26")
-
-	sqlFiles := [...]string{"fill_help_tables.sql", "mysql_security_commands.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
-	for _, sql := range sqlFiles {
-		GetBinary("mysql", "/share", sql, "5.6.26")
+	m.getMysqlBinary("/bin", "my_print_defaults")
+	m.getMysqlBinary("/bin", "resolveip")
+	if m.version > "5.5.45" {
+		m.getMysqlBinary("/share", "mysql_security_commands.sql")
+		m.getMysqlBinary("/support-files", "my-default.cnf")
 	}
 
-	binPath := GetBinary("mysql", "", "mysql_install_db", "5.6.26")
+	m.getMysqlBinary("/share", "errmsg.sys")
+	m.getMysqlBinary("/share/english", "errmsg.sys")
+
+	sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
+	for _, sql := range sqlFiles {
+		m.getMysqlBinary("/share", sql)
+	}
+
+	binPath := m.getMysqlBinary("", "mysql_install_db")
 
 	cmd := exec.Command(binPath,
 		fmt.Sprintf("--datadir=%s", m.path),
@@ -69,7 +103,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	var err error
 	infoMap := make(map[string]interface{})
 
-	execPath := GetBinary("mysql", "/bin", "mysqld", "5.6.26")
+	execPath := m.getMysqlBinary("/bin", "mysqld")
 
 	m.port = GetPort(33306)
 
@@ -84,7 +118,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	infoMap["port"] = m.port
 
 	defaultArgs := []string{
-		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(GetBinary("mysql", "/share", "errmsg.sys", "5.6.26"))),
+		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--port=%d", m.port)}
 

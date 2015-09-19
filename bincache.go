@@ -39,6 +39,10 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		log.Fatal(fmt.Sprintf("Got status %d fetching %s", resp.StatusCode, url))
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {

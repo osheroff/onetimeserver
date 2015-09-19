@@ -11,10 +11,11 @@ import (
 )
 
 type config struct {
-	ppid       int
-	serverType string
-	outputPath string
-	extraArgs  []string
+	ppid         int
+	serverType   string
+	outputPath   string
+	mysqlVersion string
+	extraArgs    []string
 }
 
 func getconf() config {
@@ -22,6 +23,7 @@ func getconf() config {
 	flag.IntVar(&c.ppid, "ppid", os.Getppid(), "parent PID")
 	flag.StringVar(&c.serverType, "type", "", "server type: one of mysql")
 	flag.StringVar(&c.outputPath, "output", "", "output")
+	flag.StringVar(&c.mysqlVersion, "mysql-version", "", "mysql-version")
 	flag.Parse()
 
 	c.extraArgs = flag.Args()
@@ -36,7 +38,7 @@ func main() {
 
 	switch config.serverType {
 	case "mysql":
-		s = onetimeserver.NewMysql()
+		s = onetimeserver.NewMysql(config.mysqlVersion)
 	default:
 		fmt.Fprintf(os.Stderr, "Please provide 'type' command line option\n\n")
 		flag.PrintDefaults()
