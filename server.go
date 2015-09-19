@@ -18,16 +18,13 @@ type Server interface {
 	String() string
 }
 
-func GetPort(suggestedPort int) int {
-	tryPort := suggestedPort
-
+func GetPort() int {
 	for true {
+		tryPort := rand.Intn(55000) + 9000
 		conn, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", tryPort))
 		if err == nil {
 			conn.Close()
 			return tryPort
-		} else {
-			tryPort = rand.Intn(55000) + 9000
 		}
 	}
 	return 0

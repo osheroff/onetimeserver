@@ -106,7 +106,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	execPath := m.getMysqlBinary("/bin", "mysqld")
 
-	m.port = GetPort(33306)
+	m.port = GetPort()
 
 	m.path, err = m.setupMysqlPath()
 	if err != nil {
