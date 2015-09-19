@@ -33,12 +33,12 @@ int tee_child(FILE *child_stdout) {
 void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 {
 	int i, j;
-	char **new_argv;
-
+	char **new_argv, *dname = dirname(strdup(argv[0]));
+  
 	new_argv = malloc(sizeof(char *) * (argc + 3));
 
-	new_argv[0] = malloc(strlen(dirname(argv[0])) + strlen(ONETIMESERVER_BINARY) + 1);
-	sprintf(new_argv[0], "%s/%s", dirname(argv[0]), ONETIMESERVER_BINARY);
+	new_argv[0] = malloc(strlen(dname) + strlen(ONETIMESERVER_BINARY) + 1);
+	sprintf(new_argv[0], "%s/%s", dname, ONETIMESERVER_BINARY);
 
 	new_argv[1] = "-output";
 	new_argv[2] = tmpfile;
