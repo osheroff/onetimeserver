@@ -61,5 +61,4 @@ then
   chmod +x $CACHE_DIR/onetimeserver-go
 fi
 
-echo $CACHE_DIR/wrapper $MYSQL_VERSION -ppid $PPID -type mysql -- $EXTRA_ARGS
 exec $CACHE_DIR/wrapper $MYSQL_VERSION -ppid $PPID -type mysql -- $EXTRA_ARGS

@@ -22,7 +22,7 @@ func GetPort(suggestedPort int) int {
 	tryPort := suggestedPort
 
 	for true {
-		conn, err := net.Listen("tcp", fmt.Sprintf(":%d", tryPort))
+		conn, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", tryPort))
 		if err == nil {
 			conn.Close()
 			return tryPort

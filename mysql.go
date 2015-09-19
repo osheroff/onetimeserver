@@ -119,6 +119,8 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	infoMap["port"] = m.port
 
 	defaultArgs := []string{
+		fmt.Sprintf("--no-defaults"),
+		fmt.Sprintf("--bind-address=127.0.0.1"),
 		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--port=%d", m.port)}
