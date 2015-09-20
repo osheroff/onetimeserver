@@ -90,7 +90,6 @@ func (m *Mysql) mysqlInstallDB() {
 	cmd := exec.Command(binPath,
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
-		"--user=ben",
 		"--no-defaults")
 
 	cmd.Stdout = os.Stdout
@@ -123,6 +122,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 		fmt.Sprintf("--bind-address=127.0.0.1"),
 		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
 		fmt.Sprintf("--datadir=%s", m.path),
+		fmt.Sprintf("--innodb-buffer-pool-size=10M"),
 		fmt.Sprintf("--port=%d", m.port)}
 
 	newArgs := append(defaultArgs, args...)
