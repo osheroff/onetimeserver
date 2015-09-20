@@ -22,14 +22,8 @@ func getBinaryCachePath(pkg string, subpath string, program string, version stri
 	return fmt.Sprint(dir, "/", program)
 }
 
-func GetBinary(pkg string, subpath string, program string, version string) string {
-	path := getBinaryCachePath(pkg, subpath, program, version)
-	_, err := os.Stat(path)
-	if err == nil {
-		return path
-	}
-
-	url := fmt.Sprintf("%s/%s/%s/%s/%s?raw=true", baseURL, pkg, runtime.GOOS, version, program)
+func makeHTTPRequest(pkg string, subpath string, os string, program string, version string) *http.Response {
+	url := fmt.Sprintf("%s/%s/%s/%s/%s?raw=true", baseURL, pkg, os, version, program)
 	log.Printf("fetching %s\n", url)
 	resp, err := http.Get(url)
 
@@ -37,12 +31,32 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 		log.Fatal(err)
 	}
 
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
+	if resp.StatusCode == 404 {
+		return nil
+	} else if resp.StatusCode != 200 {
 		log.Fatal(fmt.Sprintf("Got status %d fetching %s", resp.StatusCode, url))
+		return nil
+	} else {
+		return resp
+	}
+}
+
+func GetBinary(pkg string, subpath string, program string, version string) string {
+	path := getBinaryCachePath(pkg, subpath, program, version)
+	_, err := os.Stat(path)
+	if err == nil {
+		return path
 	}
 
+	resp := makeHTTPRequest(pkg, subpath, runtime.GOOS, program, version)
+	if resp == nil {
+		resp = makeHTTPRequest(pkg, subpath, "common", program, version)
+	}
+	if resp == nil {
+		log.Fatal("Couldn't find %s/%s %s for platform", pkg, program, version)
+	}
+
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
