@@ -62,7 +62,7 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 /* a teensy bit of C glue overcome go's reluctance to fork() */
 int main(int argc, char **argv)
 {
-	int child, child_alive = 1;
+	int child, i, child_alive = 1;
 	int child_stdout_fd = 0;
 	int debug = 0;
 	FILE *child_file = NULL;
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		abort();
 	}
 
-	for (int i=0 ; i < argc; i++) {
+	for (i=0 ; i < argc; i++) {
 		if ( strcmp(argv[i], "-debug") == 0 )
 			debug = 1;
 	}
