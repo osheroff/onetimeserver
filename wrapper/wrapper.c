@@ -10,7 +10,7 @@
 #define TMPFILE_TEMPLATE "/tmp/onetimeserver.XXXXXX"
 #define JSON_PREFIX "_onetimeserver_json: "
 
-int tee_child(FILE *child_stdout) {
+int tee_child(FILE *child_stdout, int debug) {
 	char *line = NULL;
 	size_t linecap = 0;
 	ssize_t linelen;
@@ -21,6 +21,8 @@ int tee_child(FILE *child_stdout) {
 		if ( strncmp(line, JSON_PREFIX, strlen(JSON_PREFIX)) == 0 ) {
 			fwrite(line + strlen(JSON_PREFIX), linelen - strlen(JSON_PREFIX), 1, stdout);
 			exit(0);
+		} else if ( debug ) {
+			fwrite(line, linelen, 1, stderr);
 		}
 	}
 
@@ -34,7 +36,7 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 {
 	int i, j;
 	char **new_argv, *dname = dirname(strdup(argv[0]));
-  
+
 	new_argv = malloc(sizeof(char *) * (argc + 3));
 
 	new_argv[0] = malloc(strlen(dname) + strlen(ONETIMESERVER_BINARY) + 1);
@@ -56,11 +58,13 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 	perror("Couldn't execute " ONETIMESERVER_BINARY);
 }
 
+
 /* a teensy bit of C glue overcome go's reluctance to fork() */
 int main(int argc, char **argv)
 {
 	int child, child_alive = 1;
 	int child_stdout_fd = 0;
+	int debug = 0;
 	FILE *child_file = NULL;
 	char tmpbuf[sizeof(TMPFILE_TEMPLATE) + 1];
 
@@ -72,12 +76,17 @@ int main(int argc, char **argv)
 		abort();
 	}
 
+	for (int i=0 ; i < argc; i++) {
+		if ( strcmp(argv[i], "-debug") == 0 )
+			debug = 1;
+	}
+
 	if ( (child = fork()) ) {
 		child_file = fdopen(child_stdout_fd, "r");
 		while ( 1 ) {
-			tee_child(child_file);
+			tee_child(child_file, debug);
 			if ( wait4(child, NULL, WNOHANG, NULL) != 0 ) {
-				tee_child(child_file);
+				tee_child(child_file, debug);
 
 				/* if tee_child didn't exit, we never got booted: true */
 				fprintf(stderr, "Child exited without printing info!\n");

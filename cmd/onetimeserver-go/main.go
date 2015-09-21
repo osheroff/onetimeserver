@@ -16,6 +16,7 @@ type config struct {
 	outputPath   string
 	mysqlVersion string
 	extraArgs    []string
+	debug        bool
 }
 
 func getconf() config {
@@ -24,6 +25,7 @@ func getconf() config {
 	flag.StringVar(&c.serverType, "type", "", "server type: one of mysql")
 	flag.StringVar(&c.outputPath, "output", "", "output")
 	flag.StringVar(&c.mysqlVersion, "mysql-version", "", "mysql-version")
+	flag.BoolVar(&c.debug, "debug", false, "mysql-version")
 	flag.Parse()
 
 	c.extraArgs = flag.Args()
