@@ -10,13 +10,13 @@
 #define TMPFILE_TEMPLATE "/tmp/onetimeserver.XXXXXX"
 #define JSON_PREFIX "_onetimeserver_json: "
 
-int tee_child(FILE *child_stdout, int debug) {
+void tee_child(FILE *child_stdout, int debug, off_t *offset) {
 	char *line = NULL;
 	size_t linecap = 0;
 	ssize_t linelen;
 
 	/* clear EOF */
-	fseek(child_stdout, 0, SEEK_CUR);
+	fseek(child_stdout, *offset, SEEK_SET);
 	while ((linelen = getline(&line, &linecap, child_stdout)) > 0) {
 		if ( strncmp(line, JSON_PREFIX, strlen(JSON_PREFIX)) == 0 ) {
 			fwrite(line + strlen(JSON_PREFIX), linelen - strlen(JSON_PREFIX), 1, stdout);
@@ -24,11 +24,10 @@ int tee_child(FILE *child_stdout, int debug) {
 		} else if ( debug ) {
 			fwrite(line, linelen, 1, stderr);
 		}
+		*offset += linelen;
 	}
 
 	sleep(1);
-
-	return 0;
 }
 
 
@@ -83,10 +82,11 @@ int main(int argc, char **argv)
 
 	if ( (child = fork()) ) {
 		child_file = fdopen(child_stdout_fd, "r");
+		off_t child_offset = 0;
 		while ( 1 ) {
-			tee_child(child_file, debug);
+			tee_child(child_file, debug, &child_offset);
 			if ( wait4(child, NULL, WNOHANG, NULL) != 0 ) {
-				tee_child(child_file, debug);
+				tee_child(child_file, debug, &child_offset);
 
 				/* if tee_child didn't exit, we never got booted: true */
 				fprintf(stderr, "Child exited without printing info!\n");
