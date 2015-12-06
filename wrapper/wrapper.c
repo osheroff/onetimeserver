@@ -5,6 +5,7 @@
 #include <string.h>
 #include <libgen.h>
 #include <ctype.h>
+#include <sys/wait.h>
 
 #define ONETIMESERVER_BINARY "onetimeserver-go"
 #define TMPFILE_TEMPLATE "/tmp/onetimeserver.XXXXXX"
@@ -27,13 +28,13 @@ void tee_child(FILE *child_stdout, int debug, off_t *offset) {
 		*offset += linelen;
 	}
 
-	sleep(1);
+	usleep(100000);
 }
 
 
 void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 {
-	int i, j;
+	int i;
 	char **new_argv, *dname = dirname(strdup(argv[0]));
 
 	new_argv = malloc(sizeof(char *) * (argc + 3));
@@ -61,7 +62,7 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 /* a teensy bit of C glue overcome go's reluctance to fork() */
 int main(int argc, char **argv)
 {
-	int child, i, child_alive = 1;
+	int child, i;
 	int child_stdout_fd = 0;
 	int debug = 0;
 	FILE *child_file = NULL;
