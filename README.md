@@ -23,6 +23,10 @@ puts server
 use the server for the life of your test suite.  It'll be killed and removed
 after your suite exits.
 
+*note* if you find that your mysql is mysteriouly dying on you, you may need to
+pass in the test suite's master pid with "--parent-pid".
+
+
 ## architecture
 
 1.  shell script.  bootstraps the wrapper and the golang bits
