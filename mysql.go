@@ -123,6 +123,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--innodb-buffer-pool-size=10M"),
+		fmt.Sprintf("--performance_schema=0"),
 		fmt.Sprintf("--port=%d", m.port)}
 
 	newArgs := append(defaultArgs, args...)
