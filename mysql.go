@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 )
 
 type Mysql struct {
@@ -72,9 +73,14 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 func (m *Mysql) mysqlInstallDB() {
 	m.getMysqlBinary("/bin", "my_print_defaults")
 	m.getMysqlBinary("/bin", "resolveip")
+
 	if m.version > "5.5.45" {
 		m.getMysqlBinary("/share", "mysql_security_commands.sql")
 		m.getMysqlBinary("/support-files", "my-default.cnf")
+	}
+
+	if runtime.GOOS == "linux" {
+		m.getMysqlBinary("/bin", "libaio.so.1")
 	}
 
 	m.getMysqlBinary("/share", "errmsg.sys")
@@ -94,6 +100,11 @@ func (m *Mysql) mysqlInstallDB() {
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
+	fmt.Println(m.getMysqlBinary("/bin", "my_print_defaults"))
+	str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
+	fmt.Println(str)
+	cmd.Env = append(cmd.Env, str)
 
 	abortOnError(cmd.Run())
 }
@@ -131,6 +142,9 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	stderr, err := m.cmd.StderrPipe()
 	m.cmd.Stdout = os.Stdout
+
+	// add path for lbiaio.so
+	m.cmd.Env = []string{fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(execPath))}
 
 	err = m.cmd.Start()
 	abortOnError(err)
