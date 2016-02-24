@@ -131,12 +131,13 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	infoMap["port"] = m.port
 
 	defaultArgs := []string{
-		fmt.Sprintf("--no-defaults"),
-		fmt.Sprintf("--bind-address=127.0.0.1"),
+		"--no-defaults",
+		"--bind-address=127.0.0.1",
+		"--innodb-buffer-pool-size=10M",
+		"--performance_schema=0",
+		"--innodb_use_native_aio=0",
 		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
 		fmt.Sprintf("--datadir=%s", m.path),
-		fmt.Sprintf("--innodb-buffer-pool-size=10M"),
-		fmt.Sprintf("--performance_schema=0"),
 		fmt.Sprintf("--port=%d", m.port)}
 
 	newArgs := append(defaultArgs, args...)
