@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 type Mysql struct {
@@ -138,6 +140,17 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 		fmt.Sprintf("--port=%d", m.port)}
 
 	newArgs := append(defaultArgs, args...)
+
+	hasServerID := false
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "--server-id") || strings.HasPrefix(arg, "--server_id") {
+			hasServerID = true
+		}
+	}
+	if !hasServerID {
+		newArgs = append(newArgs, fmt.Sprintf("--server_id=%d", rand.Int31()))
+	}
+
 	m.cmd = exec.Command(execPath, newArgs...)
 
 	stderr, err := m.cmd.StderrPipe()
