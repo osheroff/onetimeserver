@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -118,7 +119,22 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	execPath := m.getMysqlBinary("/bin", "mysqld")
 
-	m.port = GetPort()
+	hasServerID := false
+
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "--server-id") || strings.HasPrefix(arg, "--server_id") {
+			hasServerID = true
+		} else if strings.HasPrefix(arg, "--port=") {
+			i, e := strconv.Atoi(arg[len("--port="):len(arg)])
+			if e == nil {
+				m.port = i
+			}
+		}
+	}
+
+	if m.port == 0 {
+		m.port = GetPort()
+	}
 
 	m.path, err = m.setupMysqlPath()
 	if err != nil {
@@ -142,12 +158,6 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	newArgs := append(defaultArgs, args...)
 
-	hasServerID := false
-	for _, arg := range args {
-		if strings.HasPrefix(arg, "--server-id") || strings.HasPrefix(arg, "--server_id") {
-			hasServerID = true
-		}
-	}
 	if !hasServerID {
 		newArgs = append(newArgs, fmt.Sprintf("--server_id=%d", rand.Int31()))
 	}
