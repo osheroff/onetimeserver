@@ -73,7 +73,8 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 	return path, nil
 }
 
-func (m *Mysql) mysqlInstallDB() {
+// useful for generating the tarball
+func (m *Mysql) oldMysqlInstallDB() {
 	m.getMysqlBinary("/bin", "my_print_defaults")
 	m.getMysqlBinary("/bin", "resolveip")
 
@@ -108,6 +109,35 @@ func (m *Mysql) mysqlInstallDB() {
 	str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
 	fmt.Println(str)
 	cmd.Env = append(cmd.Env, str)
+
+	abortOnError(cmd.Run())
+}
+
+func (m *Mysql) mysqlInstallDB() {
+	m.getMysqlBinary("/bin", "resolveip")
+
+	if m.version > "5.5.45" {
+		m.getMysqlBinary("/support-files", "my-default.cnf")
+	}
+
+	if runtime.GOOS == "linux" {
+		m.getMysqlBinary("/bin", "libaio.so.1")
+	}
+
+	m.getMysqlBinary("/share", "errmsg.sys")
+	m.getMysqlBinary("/share/english", "errmsg.sys")
+
+	sqlFiles := [...]string{"errmsg.sys"}
+	for _, sql := range sqlFiles {
+		m.getMysqlBinary("/share", sql)
+	}
+
+	tarballPath := m.getMysqlBinary("", "installed_db.tar.gz")
+
+	cmd := exec.Command("tar", "zxf", tarballPath, "-C", m.path, "--strip-components=1")
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	abortOnError(cmd.Run())
 }

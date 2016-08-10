@@ -53,7 +53,7 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 		resp = makeHTTPRequest(pkg, subpath, "common", program, version)
 	}
 	if resp == nil {
-		log.Fatal("Couldn't find %s/%s %s for platform", pkg, program, version)
+		log.Fatal(fmt.Sprintf("Couldn't find %s/%s %s for platform", pkg, program, version))
 	}
 
 	defer resp.Body.Close()
