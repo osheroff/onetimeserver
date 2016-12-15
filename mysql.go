@@ -35,6 +35,8 @@ func mapVersion(version string) (string, error) {
 	availableVersions := map[string]string{
 		"5.6":    "5.6.26",
 		"5.6.26": "5.6.26",
+		"5.7":    "5.7.17",
+		"5.7.17": "5.7.17",
 		"5.5":    "5.5.45",
 		"5.5.45": "5.5.45",
 	}
@@ -95,20 +97,28 @@ func (m *Mysql) oldMysqlInstallDB() {
 		m.getMysqlBinary("/share", sql)
 	}
 
-	binPath := m.getMysqlBinary("", "mysql_install_db")
+	var cmd *exec.Cmd
+	if m.version >= "5.7" {
+		binPath := m.getMysqlBinary("", "mysqld")
+		cmd = exec.Command(binPath,
+			"--initialize-insecure",
+			fmt.Sprintf("--datadir=%s", m.path),
+			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)))
+	} else {
+		binPath := m.getMysqlBinary("", "mysql_install_db")
+		cmd = exec.Command(binPath,
+			fmt.Sprintf("--datadir=%s", m.path),
+			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)))
+		// "--no-defaults")
 
-	cmd := exec.Command(binPath,
-		fmt.Sprintf("--datadir=%s", m.path),
-		fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
-		"--no-defaults")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	fmt.Println(m.getMysqlBinary("/bin", "my_print_defaults"))
-	str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
-	fmt.Println(str)
-	cmd.Env = append(cmd.Env, str)
+		fmt.Println(m.getMysqlBinary("/bin", "my_print_defaults"))
+		str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
+		fmt.Println(str)
+		cmd.Env = append(cmd.Env, str)
+	}
 
 	abortOnError(cmd.Run())
 }
@@ -183,6 +193,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 		"--performance_schema=0",
 		"--innodb_use_native_aio=0",
 		fmt.Sprintf("--lc-messages-dir=%s", filepath.Dir(m.getMysqlBinary("/share/english", "errmsg.sys"))),
+		fmt.Sprintf("--socket=%s/mysql.sock", m.path),
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--port=%d", m.port)}
 
