@@ -173,7 +173,10 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	}
 
 	if m.port == 0 {
-		m.port = GetPort()
+		m.port = TryPort(33306)
+		if m.port == 0 {
+			m.port = GetPort()
+		}
 	}
 
 	m.path, err = m.setupMysqlPath()
