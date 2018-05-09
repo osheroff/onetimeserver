@@ -37,6 +37,9 @@ do
     -b|--block)
       BLOCK="1"
       ;;
+    --no-clean)
+      NO_CLEAN="-no-clean"
+      ;;
     -d|--debug)
       DEBUG="-debug"
       ;;
@@ -106,5 +109,5 @@ then
   $CACHE_DIR/wrapper $DEBUG $MYSQL_VERSION -ppid $PARENT_PID -type mysql -- $EXTRA_ARGS &
   sleep 2000000
 else
-  exec $CACHE_DIR/wrapper $DEBUG $BLOCK $MYSQL_VERSION -ppid $PARENT_PID -type mysql -- $EXTRA_ARGS
+  exec $CACHE_DIR/wrapper $DEBUG $BLOCK $MYSQL_VERSION $NO_CLEAN -ppid $PARENT_PID -type mysql -- $EXTRA_ARGS
 fi

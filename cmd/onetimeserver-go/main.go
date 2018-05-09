@@ -17,6 +17,7 @@ type config struct {
 	mysqlVersion string
 	extraArgs    []string
 	debug        bool
+	noClean      bool
 }
 
 func getconf() config {
@@ -26,6 +27,7 @@ func getconf() config {
 	flag.StringVar(&c.outputPath, "output", "", "output")
 	flag.StringVar(&c.mysqlVersion, "mysql-version", "", "mysql-version")
 	flag.BoolVar(&c.debug, "debug", false, "mysql-version")
+	flag.BoolVar(&c.noClean, "no-clean", false, "no-clean")
 	flag.Parse()
 
 	c.extraArgs = flag.Args()
@@ -67,5 +69,5 @@ func main() {
 	bytes, _ := json.Marshal(serverInfo)
 	fmt.Printf("_onetimeserver_json: %s\n", bytes)
 
-	onetimeserver.WatchServer(config.ppid, s)
+	onetimeserver.WatchServer(config.ppid, s, !config.noClean)
 }

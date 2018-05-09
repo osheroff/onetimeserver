@@ -232,7 +232,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	return infoMap, nil
 }
 
-func (m *Mysql) Kill() {
+func (m *Mysql) Kill(cleanup bool) {
 	process, err := os.FindProcess(m.pid)
 	if err == nil {
 		fmt.Printf("killing %d\n", m.pid)
@@ -241,7 +241,7 @@ func (m *Mysql) Kill() {
 		fmt.Printf("Couldn't find process %d -- %s\n", m.pid, err)
 	}
 
-	if m.path != "" {
+	if m.path != "" && cleanup {
 		os.RemoveAll(m.path)
 	}
 }

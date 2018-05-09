@@ -14,7 +14,7 @@ type Server interface {
 	Boot([]string) (map[string]interface{}, error)
 	Pid() int
 	Port() int
-	Kill()
+	Kill(bool)
 	String() string
 }
 
@@ -46,7 +46,7 @@ func pidExists(pid int) bool {
 	return err == nil
 }
 
-func WatchServer(ppid int, server Server) {
+func WatchServer(ppid int, server Server, cleanup bool) {
 	channel := make(chan os.Signal, 1)
 
 	signal.Notify(channel, os.Interrupt, os.Kill)
@@ -60,5 +60,5 @@ func WatchServer(ppid int, server Server) {
 	}()
 	<-channel
 
-	server.Kill()
+	server.Kill(cleanup)
 }
