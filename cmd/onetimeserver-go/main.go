@@ -15,6 +15,7 @@ type config struct {
 	serverType   string
 	outputPath   string
 	mysqlVersion string
+	reuse        string
 	extraArgs    []string
 	debug        bool
 	noClean      bool
@@ -26,6 +27,7 @@ func getconf() config {
 	flag.StringVar(&c.serverType, "type", "", "server type: one of mysql")
 	flag.StringVar(&c.outputPath, "output", "", "output")
 	flag.StringVar(&c.mysqlVersion, "mysql-version", "", "mysql-version")
+	flag.StringVar(&c.reuse, "reuse", "", "reuse this path")
 	flag.BoolVar(&c.debug, "debug", false, "mysql-version")
 	flag.BoolVar(&c.noClean, "no-clean", false, "no-clean")
 	flag.Parse()
@@ -42,7 +44,7 @@ func main() {
 
 	switch config.serverType {
 	case "mysql":
-		s = onetimeserver.NewMysql(config.mysqlVersion)
+		s = onetimeserver.NewMysql(config.mysqlVersion, config.reuse)
 	default:
 		fmt.Fprintf(os.Stderr, "Please provide 'type' command line option\n\n")
 		flag.PrintDefaults()

@@ -21,14 +21,15 @@ type Mysql struct {
 	path    string
 	pid     int
 	version string
+	reuse   string
 	cmd     *exec.Cmd
 }
 
-func NewMysql(version string) *Mysql {
+func NewMysql(version string, reuse string) *Mysql {
 	mappedVersion, err := mapVersion(version)
 	abortOnError(err)
 
-	return &Mysql{version: mappedVersion}
+	return &Mysql{version: mappedVersion, reuse: reuse}
 }
 
 func mapVersion(version string) (string, error) {
@@ -179,12 +180,16 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 		}
 	}
 
-	m.path, err = m.setupMysqlPath()
-	if err != nil {
-		return infoMap, err
-	}
+	if m.reuse == "" {
+		m.path, err = m.setupMysqlPath()
+		if err != nil {
+			return infoMap, err
+		}
 
-	m.mysqlInstallDB()
+		m.mysqlInstallDB()
+	} else {
+		m.path = m.reuse
+	}
 
 	infoMap["mysql_path"] = m.path
 	infoMap["port"] = m.port
