@@ -14,6 +14,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 )
 
 type Mysql struct {
@@ -241,6 +243,8 @@ func (m *Mysql) Kill(cleanup bool) {
 	process, err := os.FindProcess(m.pid)
 	if err == nil {
 		fmt.Printf("killing %d\n", m.pid)
+		process.Signal(syscall.SIGTERM)
+		time.Sleep(3 * time.Second)
 		process.Kill()
 	} else {
 		fmt.Printf("Couldn't find process %d -- %s\n", m.pid, err)
