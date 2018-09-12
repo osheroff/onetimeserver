@@ -28,7 +28,7 @@ func getconf() config {
 	flag.StringVar(&c.outputPath, "output", "", "output")
 	flag.StringVar(&c.mysqlVersion, "mysql-version", "", "mysql-version")
 	flag.StringVar(&c.reuse, "reuse", "", "reuse this path")
-	flag.BoolVar(&c.debug, "debug", false, "mysql-version")
+	flag.BoolVar(&c.debug, "debug", false, "debug output")
 	flag.BoolVar(&c.noClean, "no-clean", false, "no-clean")
 	flag.Parse()
 
@@ -44,7 +44,7 @@ func main() {
 
 	switch config.serverType {
 	case "mysql":
-		s = onetimeserver.NewMysql(config.mysqlVersion, config.reuse)
+		s = onetimeserver.NewMysql(config.mysqlVersion, config.reuse, config.debug)
 	default:
 		fmt.Fprintf(os.Stderr, "Please provide 'type' command line option\n\n")
 		flag.PrintDefaults()
