@@ -32,12 +32,12 @@ void tee_child(FILE *child_stdout, int debug, off_t *offset) {
 }
 
 
-void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
+void exec_child(int new_stdout, char *tmpfile, int argc, char **argv, int debug)
 {
 	int i;
 	char **new_argv, *dname = dirname(strdup(argv[0]));
 
-	new_argv = malloc(sizeof(char *) * (argc + 3));
+	new_argv = malloc(sizeof(char *) * (argc + 4));
 
 	new_argv[0] = malloc(strlen(dname) + strlen(ONETIMESERVER_BINARY) + 1);
 	sprintf(new_argv[0], "%s/%s", dname, ONETIMESERVER_BINARY);
@@ -48,10 +48,18 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv)
 	for(i = 1; i < argc; i++)
 		new_argv[i + 2] = argv[i];
 
-	new_argv[i + 2] = NULL;
+
+	if ( debug ) {
+		printf("execing: %s ", new_argv[0]);
+		for ( int i = 1 ; new_argv[i] ; i++ )
+			printf("%s ", new_argv[i]);
+
+		printf("\n");
+	}
 
 	dup2(new_stdout, STDOUT_FILENO);
 	dup2(new_stdout, STDERR_FILENO);
+
 
 	execv(new_argv[0], new_argv);
 
@@ -95,6 +103,6 @@ int main(int argc, char **argv)
 			}
 		}
 	} else {
-		exec_child(child_stdout_fd, tmpbuf, argc, argv);
+		exec_child(child_stdout_fd, tmpbuf, argc, argv, debug);
 	}
 }
