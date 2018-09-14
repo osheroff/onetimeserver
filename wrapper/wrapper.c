@@ -51,7 +51,7 @@ void exec_child(int new_stdout, char *tmpfile, int argc, char **argv, int debug)
 
 	if ( debug ) {
 		printf("execing: %s ", new_argv[0]);
-		for ( int i = 1 ; new_argv[i] ; i++ )
+		for ( i = 1 ; new_argv[i] ; i++ )
 			printf("%s ", new_argv[i]);
 
 		printf("\n");
