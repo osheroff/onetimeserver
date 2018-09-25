@@ -91,9 +91,9 @@ func (m *Mysql) pullBinaries() {
 	if runtime.GOOS == "linux" {
 		m.getMysqlBinary("/bin", "libaio.so.1")
 		if m.version >= "8.0" {
-			m.getMysqlBinary("/lib", "libcrypto.so.1.0.0")
-			m.getMysqlBinary("/lib", "libnuma.so.1")
-			m.getMysqlBinary("/lib", "libssl.so.1.0.0")
+			m.getMysqlBinary("/bin", "libcrypto.so.1.0.0")
+			m.getMysqlBinary("/bin", "libnuma.so.1")
+			m.getMysqlBinary("/bin", "libssl.so.1.0.0")
 		}
 	}
 
