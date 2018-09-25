@@ -90,14 +90,15 @@ func (m *Mysql) pullBinaries() {
 
 	if runtime.GOOS == "linux" {
 		m.getMysqlBinary("/bin", "libaio.so.1")
+		if m.version >= "8.0" {
+			m.getMysqlBinary("/lib", "libcrypto.so.1.0.0")
+			m.getMysqlBinary("/lib", "libnuma.so.1")
+			m.getMysqlBinary("/lib", "libssl.so.1.0.0")
+		}
 	}
 
 	if m.version > "5.5.45" && m.version < "8.0" {
 		m.getMysqlBinary("/support-files", "my-default.cnf")
-	}
-
-	if runtime.GOOS == "linux" {
-		m.getMysqlBinary("/bin", "libaio.so.1")
 	}
 
 	m.getMysqlBinary("/share", "errmsg.sys")
@@ -111,6 +112,7 @@ func (m *Mysql) pullBinaries() {
 
 // useful for generating the tarball
 func (m *Mysql) _mysqlInstallDB() {
+	m.pullBinaries()
 	m.getMysqlBinary("/bin", "my_print_defaults")
 
 	if m.version > "5.5.45" && m.version < "8.0" {
