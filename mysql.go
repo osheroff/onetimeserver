@@ -43,7 +43,7 @@ func mapVersion(version string) (string, error) {
 		"5.7.17": "5.7.17",
 		"5.5":    "5.5.45",
 		"5.5.45": "5.5.45",
-		"8.0":    "8.0.12",
+		"8.0":    "8.0.19",
 	}
 
 	if version == "" {
@@ -84,8 +84,10 @@ func (m *Mysql) pullBinaries() {
 	m.getMysqlBinary("/bin", "resolveip")
 
 	if m.version >= "8.0" && runtime.GOOS == "darwin" {
-		m.getMysqlBinary("/lib", "libssl.1.0.0.dylib")
-		m.getMysqlBinary("/lib", "libcrypto.1.0.0.dylib")
+		m.getMysqlBinary("/lib", "libssl.1.1.dylib")
+		m.getMysqlBinary("/lib", "libcrypto.1.1.dylib")
+		m.getMysqlBinary("/lib", "libprotobuf-lite.3.6.1.dylib")
+		m.getMysqlBinary("/lib", "libprotobuf.3.6.1.dylib")
 	}
 
 	if runtime.GOOS == "linux" {
@@ -111,7 +113,7 @@ func (m *Mysql) pullBinaries() {
 }
 
 // useful for generating the tarball
-func (m *Mysql) _mysqlInstallDB() {
+func (m *Mysql) mysqlInstallDB(args []string) {
 	m.pullBinaries()
 	m.getMysqlBinary("/bin", "my_print_defaults")
 
@@ -119,24 +121,36 @@ func (m *Mysql) _mysqlInstallDB() {
 		m.getMysqlBinary("/share", "mysql_security_commands.sql")
 	}
 
-	sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
-	for _, sql := range sqlFiles {
-		m.getMysqlBinary("/share", sql)
+	if m.version < "8.0.19" {
+		sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
+		for _, sql := range sqlFiles {
+			m.getMysqlBinary("/share", sql)
+		}
 	}
 
 	var cmd *exec.Cmd
 	var binPath string
+
+	installArgs := []string{
+		fmt.Sprintf("--datadir=%s", m.path),
+		fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
+	}
+
+	for _, arg := range args {
+		installArgs = append(installArgs, arg)
+	}
+
 	if m.version >= "5.7" {
 		binPath = m.getMysqlBinary("/bin", "mysqld")
-		cmd = exec.Command(binPath,
-			"--initialize-insecure",
-			fmt.Sprintf("--datadir=%s", m.path),
-			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)))
+		installArgs = append([]string{binPath, "--initialize-insecure"}, installArgs...)
+		cmd = exec.Command(binPath)
+		cmd.Args = installArgs
 	} else {
 		binPath = m.getMysqlBinary("", "mysql_install_db")
 		cmd = exec.Command(binPath,
 			fmt.Sprintf("--datadir=%s", m.path),
-			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)))
+			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
+		)
 		// "--no-defaults")
 
 		fmt.Println(m.getMysqlBinary("/bin", "my_print_defaults"))
@@ -156,7 +170,7 @@ func (m *Mysql) _mysqlInstallDB() {
 	abortOnError(cmd.Run())
 }
 
-func (m *Mysql) mysqlInstallDB() {
+func (m *Mysql) _mysqlInstallDB() {
 	m.pullBinaries()
 	tarballPath := m.getMysqlBinary("", "installed_db.tar.gz")
 
@@ -201,7 +215,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 			return infoMap, err
 		}
 
-		m.mysqlInstallDB()
+		m.mysqlInstallDB(args)
 	} else {
 		m.path = m.reuse
 	}
