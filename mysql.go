@@ -88,6 +88,10 @@ func (m *Mysql) pullBinaries() {
 		m.getMysqlBinary("/lib", "libcrypto.1.1.dylib")
 		m.getMysqlBinary("/lib", "libprotobuf-lite.3.6.1.dylib")
 		m.getMysqlBinary("/lib", "libprotobuf.3.6.1.dylib")
+	} else if m.version >= "8.0" && runtime.GOOS == "linux" {
+		m.getMysqlBinary("/bin", "libssl.so.1.1")
+		m.getMysqlBinary("/bin", "libcrypto.so.1.1")
+		m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.6.1")
 	}
 
 	if runtime.GOOS == "linux" {
@@ -132,6 +136,7 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 	var binPath string
 
 	installArgs := []string{
+		"--no-defaults",
 		fmt.Sprintf("--datadir=%s", m.path),
 		fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
 	}
@@ -142,9 +147,14 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 
 	if m.version >= "5.7" {
 		binPath = m.getMysqlBinary("/bin", "mysqld")
-		installArgs = append([]string{binPath, "--initialize-insecure"}, installArgs...)
+		execArgs := []string { binPath }
+		execArgs = append(execArgs, installArgs...)
+		execArgs = append(execArgs, "--initialize-insecure")
+
 		cmd = exec.Command(binPath)
-		cmd.Args = installArgs
+		cmd.Args = execArgs
+
+		cmd.Env = append(cmd.Env, fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "mysqld"))))
 	} else {
 		binPath = m.getMysqlBinary("", "mysql_install_db")
 		cmd = exec.Command(binPath,
