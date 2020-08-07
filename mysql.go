@@ -98,7 +98,6 @@ func (m *Mysql) pullBinaries() {
 		m.getMysqlBinary("/bin", "libaio.so.1")
 		if m.version >= "8.0" {
 			m.getMysqlBinary("/bin", "libcrypto.so.1.0.0")
-			m.getMysqlBinary("/bin", "libnuma.so.1")
 			m.getMysqlBinary("/bin", "libssl.so.1.0.0")
 		}
 	}
@@ -147,7 +146,7 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 
 	if m.version >= "5.7" {
 		binPath = m.getMysqlBinary("/bin", "mysqld")
-		execArgs := []string { binPath }
+		execArgs := []string{binPath}
 		execArgs = append(execArgs, installArgs...)
 		execArgs = append(execArgs, "--initialize-insecure")
 
