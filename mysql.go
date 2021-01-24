@@ -92,6 +92,7 @@ func (m *Mysql) pullBinaries() {
 		m.getMysqlBinary("/bin", "libssl.so.1.1")
 		m.getMysqlBinary("/bin", "libcrypto.so.1.1")
 		m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.6.1")
+		m.getMysqlBinary("/bin", "libnuma.so.1")
 	}
 
 	if runtime.GOOS == "linux" {
@@ -256,7 +257,6 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	// add path for lbiaio.so
 	m.cmd.Env = []string{fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(execPath))}
-	fmt.Printf("env %v\n", m.cmd.Env)
 
 	err = m.cmd.Start()
 	abortOnError(err)
