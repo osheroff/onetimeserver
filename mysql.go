@@ -256,6 +256,7 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 
 	// add path for lbiaio.so
 	m.cmd.Env = []string{fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(execPath))}
+	fmt.Printf("env %v\n", m.cmd.Env)
 
 	err = m.cmd.Start()
 	abortOnError(err)
