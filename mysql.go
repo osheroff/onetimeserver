@@ -43,7 +43,7 @@ func mapVersion(version string) (string, error) {
 		"5.7.17": "5.7.17",
 		"5.5":    "5.5.45",
 		"5.5.45": "5.5.45",
-		"8.0":    "8.0.19",
+		"8.0":    "8.0.25",
 	}
 
 	if version == "" {
@@ -86,8 +86,8 @@ func (m *Mysql) pullBinaries() {
 	if m.version >= "8.0" && runtime.GOOS == "darwin" {
 		m.getMysqlBinary("/lib", "libssl.1.1.dylib")
 		m.getMysqlBinary("/lib", "libcrypto.1.1.dylib")
-		m.getMysqlBinary("/lib", "libprotobuf-lite.3.6.1.dylib")
-		m.getMysqlBinary("/lib", "libprotobuf.3.6.1.dylib")
+		m.getMysqlBinary("/bin", "libprotobuf-lite.3.11.4.dylib")
+		m.getMysqlBinary("/lib", "libprotobuf.3.11.4.dylib")
 	} else if m.version >= "8.0" && runtime.GOOS == "linux" {
 		m.getMysqlBinary("/bin", "libssl.so.1.1")
 		m.getMysqlBinary("/bin", "libcrypto.so.1.1")
