@@ -44,6 +44,7 @@ func mapVersion(version string) (string, error) {
 		"5.5":    "5.5.45",
 		"5.5.45": "5.5.45",
 		"8.0":    "8.0.25",
+		"8.0.25": "8.0.25",
 	}
 
 	if version == "" {
