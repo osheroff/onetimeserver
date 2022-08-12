@@ -37,14 +37,15 @@ func NewMysql(version string, reuse string, debug bool) *Mysql {
 
 func mapVersion(version string) (string, error) {
 	availableVersions := map[string]string{
-		"5.6":    "5.6.26",
-		"5.6.26": "5.6.26",
-		"5.7":    "5.7.17",
-		"5.7.17": "5.7.17",
-		"5.5":    "5.5.45",
-		"5.5.45": "5.5.45",
-		"8.0":    "8.0.25",
-		"8.0.25": "8.0.25",
+		"5.6":     "5.6.26",
+		"5.6.26":  "5.6.26",
+		"5.7":     "5.7.17",
+		"5.7.17":  "5.7.17",
+		"5.5":     "5.5.45",
+		"5.5.45":  "5.5.45",
+		"8.0":     "8.0.25",
+		"8.0.25":  "8.0.25",
+		"mariadb": "mariadb",
 	}
 
 	if version == "" {
@@ -56,6 +57,10 @@ func mapVersion(version string) (string, error) {
 	}
 
 	return availableVersions[version], nil
+}
+
+func (m *Mysql) isMariaDB() bool {
+	return strings.HasPrefix(m.version, "mariadb")
 }
 
 func (m *Mysql) getMysqlBinary(path string, bin string) string {
@@ -82,7 +87,22 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 }
 
 func (m *Mysql) pullBinaries() {
-	m.getMysqlBinary("/bin", "resolveip")
+	m.getMysqlBinary("/share", "errmsg.sys")
+	m.getMysqlBinary("/share/english", "errmsg.sys")
+
+	if m.isMariaDB() {
+		m.getMysqlBinary("/bin", "mysqld")
+		m.getMysqlBinary("/bin", "resolveip")
+		m.getMysqlBinary("/share", "fill_help_tables.sql")
+		m.getMysqlBinary("/share", "mysql_system_tables.sql")
+		m.getMysqlBinary("/share", "mysql_system_tables_data.sql")
+		m.getMysqlBinary("/share", "mysql_performance_tables.sql")
+		m.getMysqlBinary("/share", "maria_add_gis_sp_bootstrap.sql")
+		m.getMysqlBinary("/share", "mysql_test_db.sql")
+		m.getMysqlBinary("/share", "mysql_sys_schema.sql")
+		MakeSymlink("mysql", "/bin", "mysqld", "mariadb", "mariadbd")
+		return
+	}
 
 	if m.version >= "8.0" && runtime.GOOS == "darwin" {
 		m.getMysqlBinary("/lib", "libssl.1.1.dylib")
@@ -108,28 +128,24 @@ func (m *Mysql) pullBinaries() {
 		m.getMysqlBinary("/support-files", "my-default.cnf")
 	}
 
-	m.getMysqlBinary("/share", "errmsg.sys")
-	m.getMysqlBinary("/share/english", "errmsg.sys")
-
-	sqlFiles := [...]string{"errmsg.sys"}
-	for _, sql := range sqlFiles {
-		m.getMysqlBinary("/share", sql)
-	}
 }
 
 // useful for generating the tarball
 func (m *Mysql) mysqlInstallDB(args []string) {
 	m.pullBinaries()
-	m.getMysqlBinary("/bin", "my_print_defaults")
 
-	if m.version > "5.5.45" && m.version < "8.0" {
-		m.getMysqlBinary("/share", "mysql_security_commands.sql")
-	}
+	if !m.isMariaDB() {
+		m.getMysqlBinary("/bin", "my_print_defaults")
 
-	if m.version < "8.0.19" {
-		sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
-		for _, sql := range sqlFiles {
-			m.getMysqlBinary("/share", sql)
+		if m.version > "5.5.45" && m.version < "8.0" {
+			m.getMysqlBinary("/share", "mysql_security_commands.sql")
+		}
+
+		if m.version < "8.0.19" {
+			sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
+			for _, sql := range sqlFiles {
+				m.getMysqlBinary("/share", sql)
+			}
 		}
 	}
 
@@ -146,7 +162,20 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 		installArgs = append(installArgs, arg)
 	}
 
-	if m.version >= "5.7" {
+	if m.isMariaDB() {
+		binPath = m.getMysqlBinary("", "mysql_install_db")
+		cmd = exec.Command(binPath,
+			fmt.Sprintf("--datadir=%s", m.path),
+			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
+		)
+		// "--no-defaults")
+
+		m.getMysqlBinary("/bin", "my_print_defaults")
+		str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
+		fmt.Println(str)
+		cmd.Env = append(cmd.Env, str)
+
+	} else if m.version >= "5.7" {
 		binPath = m.getMysqlBinary("/bin", "mysqld")
 		execArgs := []string{binPath}
 		execArgs = append(execArgs, installArgs...)

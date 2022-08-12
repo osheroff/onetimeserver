@@ -72,3 +72,9 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 	file.Write(body)
 	return path
 }
+
+func MakeSymlink(pkg string, subpath string, program string, version string, alias string) {
+	linkFrom := getBinaryCachePath(pkg, subpath, program, version)
+	linkTo := getBinaryCachePath(pkg, subpath, alias, version)
+	os.Symlink(linkFrom, linkTo)
+}
