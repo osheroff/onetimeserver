@@ -109,22 +109,13 @@ func (m *Mysql) pullBinaries() {
 		m.getMysqlBinary("/lib", "libcrypto.1.1.dylib")
 		m.getMysqlBinary("/bin", "libprotobuf-lite.3.11.4.dylib")
 		m.getMysqlBinary("/lib", "libprotobuf.3.11.4.dylib")
-	} else if m.version >= "8.0" && runtime.GOOS == "linux" {
-		m.getMysqlBinary("/bin", "libssl.so.1.1")
-		m.getMysqlBinary("/bin", "libcrypto.so.1.1")
-		if m.version >= "8.0.25" {
-			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.6.1")
-		} else {
-			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
-		}
-		m.getMysqlBinary("/bin", "libnuma.so.1")
-	}
-
-	if runtime.GOOS == "linux" {
+	} else if runtime.GOOS == "linux" {
 		m.getMysqlBinary("/bin", "libaio.so.1")
 		if m.version >= "8.0" {
-			m.getMysqlBinary("/bin", "libcrypto.so.1.0.0")
-			m.getMysqlBinary("/bin", "libssl.so.1.0.0")
+			m.getMysqlBinary("/bin", "libssl.so.1.1")
+			m.getMysqlBinary("/bin", "libnuma.so.1")
+			m.getMysqlBinary("/bin", "libcrypto.so.1.1")
+			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
 		}
 	}
 

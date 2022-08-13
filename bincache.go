@@ -50,6 +50,9 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 
 	resp := makeHTTPRequest(pkg, subpath, runtime.GOOS, program, version)
 	if resp == nil {
+		resp = makeHTTPRequest(pkg, subpath, runtime.GOOS, program, "common")
+	}
+	if resp == nil {
 		resp = makeHTTPRequest(pkg, subpath, "common", program, version)
 	}
 	if resp == nil {
