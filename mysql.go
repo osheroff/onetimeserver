@@ -167,8 +167,8 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 		cmd = exec.Command(binPath,
 			fmt.Sprintf("--datadir=%s", m.path),
 			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
+			"--no-defaults",
 		)
-		// "--no-defaults")
 
 		m.getMysqlBinary("/bin", "my_print_defaults")
 		str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
