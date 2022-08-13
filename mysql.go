@@ -112,7 +112,11 @@ func (m *Mysql) pullBinaries() {
 	} else if m.version >= "8.0" && runtime.GOOS == "linux" {
 		m.getMysqlBinary("/bin", "libssl.so.1.1")
 		m.getMysqlBinary("/bin", "libcrypto.so.1.1")
-		m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.6.1")
+		if m.version >= "8.0.25" {
+			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.6.1")
+		} else {
+			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
+		}
 		m.getMysqlBinary("/bin", "libnuma.so.1")
 	}
 
