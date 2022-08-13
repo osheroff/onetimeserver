@@ -87,12 +87,12 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 }
 
 func (m *Mysql) pullBinaries() {
+	m.getMysqlBinary("/bin", "resolveip")
 	m.getMysqlBinary("/share", "errmsg.sys")
 	m.getMysqlBinary("/share/english", "errmsg.sys")
 
 	if m.isMariaDB() {
 		m.getMysqlBinary("/bin", "mysqld")
-		m.getMysqlBinary("/bin", "resolveip")
 		m.getMysqlBinary("/share", "fill_help_tables.sql")
 		m.getMysqlBinary("/share", "mysql_system_tables.sql")
 		m.getMysqlBinary("/share", "mysql_system_tables_data.sql")
