@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"runtime"
 )
 
@@ -39,6 +40,51 @@ func makeHTTPRequest(pkg string, subpath string, os string, program string, vers
 	} else {
 		return resp
 	}
+}
+
+func buildInstallCachePath(pkg string, version string) string {
+	return fmt.Sprintf("%s/.onetimeserver/install/%s/%s", os.Getenv("HOME"), pkg, version)
+}
+
+func GetInstallPathCache(pkg string, version string) string {
+	dir := fmt.Sprintf("%s/.onetimeserver/install/%s/%s", os.Getenv("HOME"), pkg, version)
+	err := os.MkdirAll(dir, 0755)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return dir
+}
+
+func CopyFromInstallCache(pkg string, version string, destPath string) bool {
+	print(pkg)
+	dir := buildInstallCachePath(pkg, version)
+	dirFiles := fmt.Sprintf("%s/", dir)
+	print(dir)
+	stat, err := os.Stat(dir)
+	if err == nil && stat.IsDir() {
+		os.MkdirAll(destPath, 0755)
+		cmd := exec.Command("cp", "-avp", dirFiles, destPath)
+		cmd.Run()
+		return true
+	} else {
+		return false
+	}
+}
+
+func CopyToInstallCache(pkg string, version string, sourcePath string) {
+	dir := buildInstallCachePath(pkg, version)
+	err := os.MkdirAll(dir, 0755)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sourceFiles := fmt.Sprintf("%s/", sourcePath)
+	cmd := exec.Command("cp", "-avp", sourceFiles, dir)
+	print(cmd)
+	cmd.Run()
 }
 
 func GetBinary(pkg string, subpath string, program string, version string) string {

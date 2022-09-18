@@ -125,7 +125,6 @@ func (m *Mysql) pullBinaries() {
 
 }
 
-// useful for generating the tarball
 func (m *Mysql) mysqlInstallDB(args []string) {
 	m.pullBinaries()
 
@@ -146,6 +145,10 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 
 	var cmd *exec.Cmd
 	var binPath string
+
+	if CopyFromInstallCache("mysql", m.version, m.path) {
+		return
+	}
 
 	installArgs := []string{
 		"--no-defaults",
@@ -203,6 +206,8 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 	}
 
 	abortOnError(cmd.Run())
+
+	CopyToInstallCache("mysql", m.version, m.path)
 }
 
 func (m *Mysql) _mysqlInstallDB() {

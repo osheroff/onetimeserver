@@ -16,8 +16,9 @@ onetimeserver-crossbuild:
 	env GOOS=darwin GOARCH=amd64 go build -o onetimeserver-binaries/onetimeserver-go/darwin/onetimeserver-go cmd/onetimeserver-go/main.go
 
 install-local:
+	rm -Rf $(DIR)
 	mkdir -p $(DIR)
 	cp wrapper/wrapper $(DIR)
-	cp ${GOPATH}/bin/onetimeserver-go $(DIR)
+	cp -avp ${GOPATH}/bin/onetimeserver-go $(DIR)
 
 
