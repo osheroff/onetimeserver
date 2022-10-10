@@ -146,7 +146,14 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 	var cmd *exec.Cmd
 	var binPath string
 
+	if m.debug {
+		fmt.Printf("checking for installed-db cache\n")
+	}
+
 	if CopyFromInstallCache("mysql", m.version, m.path) {
+		if m.debug {
+			fmt.Printf("copied database from cache\n")
+		}
 		return
 	}
 
