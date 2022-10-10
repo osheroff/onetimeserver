@@ -59,7 +59,7 @@ func GetInstallPathCache(pkg string, version string) string {
 
 func CopyFromInstallCache(pkg string, version string, destPath string) bool {
 	dir := buildInstallCachePath(pkg, version)
-	dirFiles := fmt.Sprintf("%s/", dir)
+	dirFiles := fmt.Sprintf("%s/.", dir)
 	stat, err := os.Stat(dir)
 	if err == nil && stat.IsDir() {
 		os.MkdirAll(destPath, 0755)
@@ -79,7 +79,7 @@ func CopyToInstallCache(pkg string, version string, sourcePath string) {
 		log.Fatal(err)
 	}
 
-	sourceFiles := fmt.Sprintf("%s/", sourcePath)
+	sourceFiles := fmt.Sprintf("%s/.", sourcePath)
 	cmd := exec.Command("cp", "-avp", sourceFiles, dir)
 	cmd.Run()
 }
