@@ -43,8 +43,9 @@ func mapVersion(version string) (string, error) {
 		"5.7.17":  "5.7.17",
 		"5.5":     "5.5.45",
 		"5.5.45":  "5.5.45",
-		"8.0":     "8.0.25",
+		"8.0":     "8.0.31",
 		"8.0.25":  "8.0.25",
+		"8.0.31":  "8.0.31",
 		"mariadb": "mariadb",
 	}
 
@@ -115,7 +116,11 @@ func (m *Mysql) pullBinaries() {
 			m.getMysqlBinary("/bin", "libssl.so.1.1")
 			m.getMysqlBinary("/bin", "libnuma.so.1")
 			m.getMysqlBinary("/bin", "libcrypto.so.1.1")
-			m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
+			if m.version >= "8.0.31" { 
+				m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.19.4")
+			} else { 
+				m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
+			}
 		}
 	}
 
