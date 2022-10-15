@@ -215,6 +215,7 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 	abortOnError(cmd.Run())
 
 	CopyToInstallCache("mysql", m.version, m.path)
+	RemoveFromInstallCache("mysql", m.version, m.path, "auto.cnf")
 }
 
 func (m *Mysql) _mysqlInstallDB() {

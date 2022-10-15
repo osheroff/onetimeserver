@@ -84,6 +84,12 @@ func CopyToInstallCache(pkg string, version string, sourcePath string) {
 	cmd.Run()
 }
 
+func RemoveFromInstallCache(pkg string, version string, sourcePath string, filename string) {
+	dir := buildInstallCachePath(pkg, version)
+	file := fmt.Sprintf("%s/%s", dir, filename)
+	os.Remove(file)
+}
+
 func GetBinary(pkg string, subpath string, program string, version string) string {
 	path := getBinaryCachePath(pkg, subpath, program, version)
 	_, err := os.Stat(path)
