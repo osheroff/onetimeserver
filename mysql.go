@@ -44,7 +44,7 @@ func mapVersion(version string) (string, error) {
 		"5.5.45":  "5.5.45",
 		"8.0":     "8.0.32",
 		"8.0.32":  "8.0.32",
-		"mariadb": "mariadb",
+		"mariadb": "mariadb-10.8.3-",
 	}
 
 	if version == "" {
@@ -86,26 +86,12 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 }
 
 func (m *Mysql) pullBinaries() {
-	DownloadFromManifest("mysql", m.version)
-
-	return
 	if m.isMariaDB() {
-		m.getMysqlBinary("/bin", "mysqld")
-		m.getMysqlBinary("/share", "fill_help_tables.sql")
-		m.getMysqlBinary("/share", "mysql_system_tables.sql")
-		m.getMysqlBinary("/share", "mysql_system_tables_data.sql")
-		m.getMysqlBinary("/share", "mysql_performance_tables.sql")
-		m.getMysqlBinary("/share", "maria_add_gis_sp_bootstrap.sql")
-		m.getMysqlBinary("/share", "mysql_test_db.sql")
-		m.getMysqlBinary("/share", "mysql_sys_schema.sql")
+		DownloadFromManifest("mysql", m.version)
+	} else {
+		DownloadFromManifest("mariadb", m.version)
 		MakeSymlink("mysql", "/bin", "mysqld", "mariadb", "mariadbd")
-		return
 	}
-
-	if m.version > "5.5.45" && m.version < "8.0" {
-		m.getMysqlBinary("/support-files", "my-default.cnf")
-	}
-
 }
 
 func (m *Mysql) mysqlInstallDB(args []string) {
@@ -163,12 +149,10 @@ func (m *Mysql) mysqlInstallDB(args []string) {
 		cmd = exec.Command(binPath,
 			fmt.Sprintf("--datadir=%s", m.path),
 			fmt.Sprintf("--basedir=%s", filepath.Dir(binPath)),
+			"--no-defaults",
 		)
-		// "--no-defaults")
 
-		fmt.Println(m.getMysqlBinary("/bin", "my_print_defaults"))
 		str := fmt.Sprintf("LD_LIBRARY_PATH=%s", filepath.Dir(m.getMysqlBinary("/bin", "my_print_defaults")))
-		fmt.Println(str)
 		cmd.Env = append(cmd.Env, str)
 	}
 
