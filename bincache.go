@@ -1,6 +1,7 @@
 package onetimeserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 const baseURL = "https://github.com/osheroff/onetimeserver-binaries/raw/master"
@@ -23,8 +25,7 @@ func getBinaryCachePath(pkg string, subpath string, program string, version stri
 	return fmt.Sprint(dir, "/", program)
 }
 
-func makeHTTPRequest(pkg string, subpath string, os string, program string, version string) *http.Response {
-	url := fmt.Sprintf("%s/%s/%s/%s/%s?raw=true", baseURL, pkg, os, version, program)
+func makeHTTPRequestURL(url string) *http.Response {
 	log.Printf("fetching %s\n", url)
 	resp, err := http.Get(url)
 
@@ -40,6 +41,11 @@ func makeHTTPRequest(pkg string, subpath string, os string, program string, vers
 	} else {
 		return resp
 	}
+}
+
+func makeHTTPRequest(pkg string, subpath string, os string, program string, version string) *http.Response {
+	url := fmt.Sprintf("%s/%s/%s/%s/%s?raw=true", baseURL, pkg, os, version, program)
+	return makeHTTPRequestURL(url)
 }
 
 func buildInstallCachePath(pkg string, version string) string {
@@ -123,6 +129,80 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 
 	file.Write(body)
 	return path
+}
+
+func GetManifest(pkg string) string {
+	manifestPath := fmt.Sprintf("%s/.onetimeserver/bin/%s/manifest.json", os.Getenv("HOME"), pkg)
+	_, err := os.Stat(manifestPath)
+	if err == nil {
+		return manifestPath
+	}
+	url := fmt.Sprintf("%s/%s/manifest.json?raw=true", baseURL, pkg)
+	resp := makeHTTPRequestURL(url)
+	if resp == nil {
+		log.Fatal(fmt.Sprintf("Couldn't find manifest at %s", url))
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	file, err := os.OpenFile(manifestPath, os.O_RDWR|os.O_CREATE, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	file.Write(body)
+	return manifestPath
+}
+
+func downloadRange(pkg string, version string, files []interface{}) {
+	for _, item := range files {
+		file := item.(string)
+		split := strings.Split(file, "/")
+		GetBinary(pkg, strings.Join(split[0:len(split)-1], "/"), split[len(split)-1], version)
+	}
+}
+
+func DownloadFromManifest(pkg string, version string) {
+	path := GetManifest(pkg)
+	var result map[string]interface{}
+
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer jsonFile.Close()
+	bytes, _ := ioutil.ReadAll(jsonFile)
+
+	json.Unmarshal(bytes, &result)
+
+	all, ok := result["all"]
+	if !ok {
+		log.Fatal("No key for 'all' in manifest.json!")
+	}
+	downloadRange(pkg, version, all.([]interface{}))
+
+	ver, version_ok := result[version]
+	if !version_ok {
+		log.Fatal(fmt.Sprintf("No key for '%s' in manifest.json!", version))
+	}
+	version_map := ver.(map[string]interface{})
+
+	common, ok := version_map["common"]
+	if !ok {
+		log.Fatal(fmt.Sprintf("No key for '%s/common' in manifest.json!", version))
+	}
+
+	downloadRange(pkg, version, common.([]interface{}))
+
+	platform, platform_ok := version_map[runtime.GOOS]
+	if platform_ok {
+		downloadRange(pkg, version, platform.([]interface{}))
+	}
 }
 
 func MakeSymlink(pkg string, subpath string, program string, version string, alias string) {

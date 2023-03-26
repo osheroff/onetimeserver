@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -43,9 +42,8 @@ func mapVersion(version string) (string, error) {
 		"5.7.17":  "5.7.17",
 		"5.5":     "5.5.45",
 		"5.5.45":  "5.5.45",
-		"8.0":     "8.0.31",
-		"8.0.25":  "8.0.25",
-		"8.0.31":  "8.0.31",
+		"8.0":     "8.0.32",
+		"8.0.32":  "8.0.32",
 		"mariadb": "mariadb",
 	}
 
@@ -88,10 +86,9 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 }
 
 func (m *Mysql) pullBinaries() {
-	m.getMysqlBinary("/bin", "resolveip")
-	m.getMysqlBinary("/share", "errmsg.sys")
-	m.getMysqlBinary("/share/english", "errmsg.sys")
+	DownloadFromManifest("mysql", m.version)
 
+	return
 	if m.isMariaDB() {
 		m.getMysqlBinary("/bin", "mysqld")
 		m.getMysqlBinary("/share", "fill_help_tables.sql")
@@ -105,25 +102,6 @@ func (m *Mysql) pullBinaries() {
 		return
 	}
 
-	if m.version >= "8.0" && runtime.GOOS == "darwin" {
-		m.getMysqlBinary("/lib", "libssl.1.1.dylib")
-		m.getMysqlBinary("/lib", "libcrypto.1.1.dylib")
-		m.getMysqlBinary("/bin", "libprotobuf-lite.3.11.4.dylib")
-		m.getMysqlBinary("/lib", "libprotobuf.3.11.4.dylib")
-	} else if runtime.GOOS == "linux" {
-		m.getMysqlBinary("/bin", "libaio.so.1")
-		if m.version >= "8.0" {
-			m.getMysqlBinary("/bin", "libssl.so.1.1")
-			m.getMysqlBinary("/bin", "libnuma.so.1")
-			m.getMysqlBinary("/bin", "libcrypto.so.1.1")
-			if m.version >= "8.0.31" { 
-				m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.19.4")
-			} else { 
-				m.getMysqlBinary("/bin", "libprotobuf-lite.so.3.11.4")
-			}
-		}
-	}
-
 	if m.version > "5.5.45" && m.version < "8.0" {
 		m.getMysqlBinary("/support-files", "my-default.cnf")
 	}
@@ -132,21 +110,6 @@ func (m *Mysql) pullBinaries() {
 
 func (m *Mysql) mysqlInstallDB(args []string) {
 	m.pullBinaries()
-
-	if !m.isMariaDB() {
-		m.getMysqlBinary("/bin", "my_print_defaults")
-
-		if m.version > "5.5.45" && m.version < "8.0" {
-			m.getMysqlBinary("/share", "mysql_security_commands.sql")
-		}
-
-		if m.version < "8.0.19" {
-			sqlFiles := [...]string{"fill_help_tables.sql", "mysql_system_tables.sql", "mysql_system_tables_data.sql", "errmsg.sys"}
-			for _, sql := range sqlFiles {
-				m.getMysqlBinary("/share", sql)
-			}
-		}
-	}
 
 	var cmd *exec.Cmd
 	var binPath string

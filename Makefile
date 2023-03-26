@@ -20,5 +20,6 @@ install-local:
 	mkdir -p $(DIR)
 	cp wrapper/wrapper $(DIR)
 	cp -avp ${GOPATH}/bin/onetimeserver-go $(DIR)
+	test -d ${HOME}/.onetimeserver && cp onetimeserver-binaries/mysql/manifest.json ${HOME}/.onetimeserver/bin/mysql/manifest.json
 
 
