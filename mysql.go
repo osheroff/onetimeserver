@@ -44,7 +44,7 @@ func mapVersion(version string) (string, error) {
 		"5.5.45":  "5.5.45",
 		"8.0":     "8.0.32",
 		"8.0.32":  "8.0.32",
-		"mariadb": "mariadb-10.8.3-",
+		"mariadb": "mariadb-10.8.3",
 	}
 
 	if version == "" {
