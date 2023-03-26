@@ -21,5 +21,6 @@ install-local:
 	cp wrapper/wrapper $(DIR)
 	cp -avp ${GOPATH}/bin/onetimeserver-go $(DIR)
 	test -d ${HOME}/.onetimeserver && cp onetimeserver-binaries/mysql/manifest.json ${HOME}/.onetimeserver/bin/mysql/manifest.json
+	test -d ${HOME}/.onetimeserver && cp onetimeserver-binaries/mariadb/manifest.json ${HOME}/.onetimeserver/bin/mariadb/manifest.json
 
 

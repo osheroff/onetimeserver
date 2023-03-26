@@ -208,5 +208,6 @@ func DownloadFromManifest(pkg string, version string) {
 func MakeSymlink(pkg string, subpath string, program string, version string, alias string) {
 	linkFrom := getBinaryCachePath(pkg, subpath, program, version)
 	linkTo := getBinaryCachePath(pkg, subpath, alias, version)
+	fmt.Printf("symlinking from %s to %s\n", linkFrom, linkTo)
 	os.Symlink(linkFrom, linkTo)
 }

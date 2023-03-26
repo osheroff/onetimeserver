@@ -62,8 +62,16 @@ func (m *Mysql) isMariaDB() bool {
 	return strings.HasPrefix(m.version, "mariadb")
 }
 
+func (m *Mysql) appName() string {
+	if m.isMariaDB() {
+		return "mariadb"
+	} else {
+		return "mysql"
+	}
+}
+
 func (m *Mysql) getMysqlBinary(path string, bin string) string {
-	return GetBinary("mysql", path, bin, m.version)
+	return GetBinary(m.appName(), path, bin, m.version)
 }
 
 func abortOnError(e error) {
@@ -87,10 +95,10 @@ func (m *Mysql) setupMysqlPath() (string, error) {
 
 func (m *Mysql) pullBinaries() {
 	if m.isMariaDB() {
-		DownloadFromManifest("mysql", m.version)
-	} else {
 		DownloadFromManifest("mariadb", m.version)
-		MakeSymlink("mysql", "/bin", "mysqld", "mariadb", "mariadbd")
+		MakeSymlink("mariadb", "/bin", "mysqld", m.version, "mariadbd")
+	} else {
+		DownloadFromManifest("mysql", m.version)
 	}
 }
 
