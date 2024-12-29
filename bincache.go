@@ -128,6 +128,13 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 	defer file.Close()
 
 	file.Write(body)
+
+
+	if strings.HasSuffix(".gz", path) {
+		cmd := exec.Command("gunzip", path)
+		cmd.Run()
+	}
+
 	return path
 }
 
