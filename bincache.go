@@ -143,8 +143,16 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 }
 
 func GetManifest(pkg string) string {
-	manifestPath := fmt.Sprintf("%s/.onetimeserver/bin/%s/manifest.json", os.Getenv("HOME"), pkg)
-	_, err := os.Stat(manifestPath)
+	manifestDir := fmt.Sprintf("%s/.onetimeserver/bin/%s", os.Getenv("HOME"), pkg)
+	err := os.MkdirAll(manifestDir, 0755)
+
+	if err != nil {
+		log.Fatal("couldn't make binpath!")
+	}
+	
+	manifestPath := fmt.Sprintf("%s/manifest.json", manifestDir)
+
+	_, err = os.Stat(manifestPath)
 	if err == nil {
 		log.Printf("Using cached manifest at %s\n", manifestPath)
 		return manifestPath
