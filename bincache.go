@@ -15,6 +15,9 @@ import (
 const baseURL = "https://github.com/osheroff/onetimeserver-binaries/raw/master"
 
 func getBinaryCachePath(pkg string, subpath string, program string, version string) string {
+	if strings.HasSuffix(program, ".gz") { 
+		program = strings.Replace(program, ".gz", "", 0)
+	}
 	dir := fmt.Sprintf("%s/.onetimeserver/bin/%s/%s%s", os.Getenv("HOME"), pkg, version, subpath)
 	err := os.MkdirAll(dir, 0755)
 
@@ -130,7 +133,8 @@ func GetBinary(pkg string, subpath string, program string, version string) strin
 	file.Write(body)
 
 
-	if strings.HasSuffix(".gz", path) {
+	if strings.HasSuffix(path, ".gz") {
+		log.Printf("unzipping")
 		cmd := exec.Command("gunzip", path)
 		cmd.Run()
 	}
@@ -142,6 +146,7 @@ func GetManifest(pkg string) string {
 	manifestPath := fmt.Sprintf("%s/.onetimeserver/bin/%s/manifest.json", os.Getenv("HOME"), pkg)
 	_, err := os.Stat(manifestPath)
 	if err == nil {
+		log.Printf("Using cached manifest at %s\n", manifestPath)
 		return manifestPath
 	}
 	url := fmt.Sprintf("%s/%s/manifest.json?raw=true", baseURL, pkg)
@@ -163,6 +168,7 @@ func GetManifest(pkg string) string {
 	defer file.Close()
 
 	file.Write(body)
+	log.Printf("downloaded manifest to %s\n", manifestPath)
 	return manifestPath
 }
 

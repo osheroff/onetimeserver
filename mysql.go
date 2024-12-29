@@ -196,7 +196,6 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	infoMap := make(map[string]interface{})
 	log.Printf("booting mysql server (version %s)", m.version)
 
-	execPath := m.getMysqlBinary("/bin", "mysqld")
 
 	hasServerID := false
 
@@ -228,6 +227,8 @@ func (m *Mysql) Boot(args []string) (map[string]interface{}, error) {
 	} else {
 		m.path = m.reuse
 	}
+
+	execPath := m.getMysqlBinary("/bin", "mysqld")
 
 	infoMap["mysql_path"] = m.path
 	infoMap["port"] = m.port
